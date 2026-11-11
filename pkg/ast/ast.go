@@ -29,6 +29,14 @@ type Expression interface {
 	exprNode() // Dummy to restrict interface impl
 }
 
+// Represents the root of the AST
+type Program struct {
+	SourceSpan SourceSpan  `json:"span"`
+	Statements  []Statement `json:"statements"`
+}
+
+func (p *Program) Span() SourceSpan { return p.SourceSpan }
+
 // Represent the "skip" statement
 type SkipStmt struct {
 	SourceSpan SourceSpan `json:"span"`
@@ -37,11 +45,20 @@ type SkipStmt struct {
 func (s *SkipStmt) Span() SourceSpan { return s.SourceSpan }
 func (s *SkipStmt) stmtNode()        {}
 
+// Represents a variable name in the AST
+type Identifier struct {
+	SourceSpan SourceSpan `json:"span"`
+	Value      string     `json:"value"`
+}
+
+func (i *Identifier) Span() SourceSpan { return i.SourceSpan }
+func (i *Identifier) exprNode()        {}
+
 // Stands for assignment operation ("Ident." := "Expression")
 type AssignStmt struct {
-	SourceSpan  SourceSpan `json:"span"`
-	Identrifier string     `json:"indentifier"`
-	Value       Expression `json:"value"`
+	SourceSpan SourceSpan `json:"span"`
+	Identifier Identifier     `json:"indentifier"`
+	Value      Expression `json:"value"`
 }
 
 func (s *AssignStmt) Span() SourceSpan { return s.SourceSpan }
@@ -94,7 +111,7 @@ type NumberExpr struct {
 }
 
 func (s *NumberExpr) Span() SourceSpan { return s.SourceSpan }
-func (s *NumberExpr) stmtNode()        {}
+func (s *NumberExpr) exprNode()        {}
 
 // Represents a variable lookup
 type IdentifierExpr struct {
@@ -103,7 +120,7 @@ type IdentifierExpr struct {
 }
 
 func (s *IdentifierExpr) Span() SourceSpan { return s.SourceSpan }
-func (s *IdentifierExpr) stmtNode()        {}
+func (s *IdentifierExpr) exprNode()        {}
 
 // Represents binary operations for both arithmetic and conditions
 type BinaryExpr struct {
@@ -114,4 +131,4 @@ type BinaryExpr struct {
 }
 
 func (s *BinaryExpr) Span() SourceSpan { return s.SourceSpan }
-func (s *BinaryExpr) stmtNode()        {}
+func (s *BinaryExpr) exprNode()        {}
