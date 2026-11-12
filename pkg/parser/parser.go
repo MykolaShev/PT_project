@@ -126,7 +126,6 @@ func (p *Parser) parseCompoundStatement() ast.Statement {
 	return left
 }
 
-
 // parseAssignStatement handles "variable := expression" constructs.
 func (p *Parser) parseAssignStatement() ast.Statement {
 	stmt := &ast.AssignStmt{}
@@ -157,11 +156,6 @@ func (p *Parser) parseAssignStatement() ast.Statement {
 			Start: startPos,
 			End:   ast.Position{Line: p.curToken.Line, Column: p.curToken.Column},
 		} // fallback
-	}
-
-	// Skip optional semicolon if it's acting as a terminator
-	if p.peekToken.Type == SEMICOLON {
-		p.nextToken()
 	}
 
 	return stmt
