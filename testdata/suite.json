@@ -1,0 +1,71 @@
+[
+    {
+      "name": "Basic assignment and sequence",
+      "source": "begin X := 10 ; Y := X + 5 end",
+      "expected_state": {
+        "X": 10,
+        "Y": 15
+      },
+      "expect_error": false
+    },
+    {
+      "name": "Operator precedence (Pratt parser test)",
+      "source": "begin X := 2 + 3 * 4 ; Y := ( 2 + 3 ) * 4 end",
+      "expected_state": {
+        "X": 14,
+        "Y": 20
+      },
+      "expect_error": false
+    },
+    {
+      "name": "If-then-else branching",
+      "source": "begin X := 10 ; if X > 5 then Y := 1 else Y := 0 ; if X < 5 then Z := 1 else Z := 0 end",
+      "expected_state": {
+        "X": 10,
+        "Y": 1,
+        "Z": 0
+      },
+      "expect_error": false
+    },
+    {
+      "name": "While loop multiplication",
+      "source": "begin X := 5 ; Y := 3 ; R := 0 ; while Y > 0 do begin R := R + X ; Y := Y - 1 end end",
+      "expected_state": {
+        "X": 5,
+        "Y": 0,
+        "R": 15
+      },
+      "expect_error": false
+    },
+    {
+      "name": "Nested while loops",
+      "source": "begin I := 2 ; R := 0 ; while I > 0 do begin J := 3 ; while J > 0 do begin R := R + 1 ; J := J - 1 end ; I := I - 1 end end",
+      "expected_state": {
+        "I": 0,
+        "J": 0,
+        "R": 6
+      },
+      "expect_error": false
+    },
+    {
+      "name": "Skip statement handling",
+      "source": "begin X := 1 ; skip ; Y := 2 end",
+      "expected_state": {
+        "X": 1,
+        "Y": 2
+      },
+      "expect_error": false
+    },
+    {
+      "name": "Syntax error handling (missing end)",
+      "source": "begin X := 10 ; while Y > 0 do begin R := 1 end",
+      "expected_state": {},
+      "expect_error": true
+    },
+    {
+      "name": "Runtime error handling (division by zero)",
+      "source": "begin X := 10 ; Y := 0 ; Z := X / Y end",
+      "expected_state": {},
+      "expect_error": true
+    }
+  ]

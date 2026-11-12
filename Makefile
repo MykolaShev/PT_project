@@ -1,4 +1,4 @@
-.PHONY: run trace parse json
+.PHONY: run trace parse json test
 
 run:
 	go run cmd/sipl/main.go run test.sipl
@@ -11,3 +11,6 @@ parse:
 
 json:
 	go run cmd/sipl/main.go --json run test.sipl
+
+test:
+	go test -v ./...
