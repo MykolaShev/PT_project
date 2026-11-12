@@ -1,0 +1,9 @@
+begin
+  X := 5 ;
+  Y := 3 ;
+  R := 0 ;
+  while Y > 0 do begin
+    R := R + X ;
+    Y := Y - 1
+  end
+end
