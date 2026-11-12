@@ -128,7 +128,7 @@ func (p *Parser) parseCompoundStatement() ast.Statement {
 
 
 // parseAssignStatement handles "variable := expression" constructs.
-func (p *Parser) parseAssignStatement() *ast.AssignStmt {
+func (p *Parser) parseAssignStatement() ast.Statement {
 	stmt := &ast.AssignStmt{}
 
 	startPos := ast.Position{Line: p.curToken.Line, Column: p.curToken.Column}
@@ -164,6 +164,85 @@ func (p *Parser) parseAssignStatement() *ast.AssignStmt {
 		p.nextToken()
 	}
 
+	return stmt
+}
+
+// parseBlockStatement handles "begin ... end" blocks.
+func (p *Parser) parseBlockStatement() ast.Statement {
+	stmt := &ast.BlockStmt{}
+	startPos := ast.Position{Line: p.curToken.Line, Column: p.curToken.Column}
+
+	p.nextToken() // consume 'begin'
+
+	stmt.Body = p.parseCompoundStatement()
+
+	if !p.expectPeek(END) {
+		return nil
+	}
+
+	stmt.SourceSpan = ast.SourceSpan{
+		Start: startPos,
+		End:   ast.Position{Line: p.curToken.Line, Column: p.curToken.Column},
+	}
+	return stmt
+}
+
+// parseWhileStatement handles "while E do S" loops.
+func (p *Parser) parseWhileStatement() ast.Statement {
+	stmt := &ast.WhileStmt{}
+	startPos := ast.Position{Line: p.curToken.Line, Column: p.curToken.Column}
+
+	p.nextToken() // consume 'while'
+	stmt.Condition = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(DO) {
+		return nil
+	}
+
+	p.nextToken() // consume 'do'
+	stmt.Body = p.parseStatement()
+
+	if stmt.Body != nil {
+		stmt.SourceSpan = ast.SourceSpan{Start: startPos, End: stmt.Body.Span().End}
+	}
+	return stmt
+}
+
+// parseIfStatement handles "if E then S1 else S2" conditions.
+func (p *Parser) parseIfStatement() ast.Statement {
+	stmt := &ast.IfStmt{}
+	startPos := ast.Position{Line: p.curToken.Line, Column: p.curToken.Column}
+
+	p.nextToken() // consume 'if'
+	stmt.Condition = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(THEN) {
+		return nil
+	}
+
+	p.nextToken() // consume 'then'
+	stmt.ThenBlock = p.parseStatement()
+
+	if p.peekToken.Type == ELSE {
+		p.nextToken() // move to 'else'
+		p.nextToken() // move to the start of the else block
+		stmt.ElseBlock = p.parseStatement()
+	}
+
+	endPos := stmt.ThenBlock.Span().End
+	if stmt.ElseBlock != nil {
+		endPos = stmt.ElseBlock.Span().End
+	}
+
+	stmt.SourceSpan = ast.SourceSpan{Start: startPos, End: endPos}
+	return stmt
+}
+
+// parseSkipStatement handles "skip".
+func (p *Parser) parseSkipStatement() ast.Statement {
+	stmt := &ast.SkipStmt{}
+	pos := ast.Position{Line: p.curToken.Line, Column: p.curToken.Column}
+	stmt.SourceSpan = ast.SourceSpan{Start: pos, End: pos}
 	return stmt
 }
 
@@ -252,85 +331,6 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	}
 
 	return expression
-}
-
-// parseBlockStatement handles "begin ... end" blocks.
-func (p *Parser) parseBlockStatement() *ast.BlockStmt {
-	stmt := &ast.BlockStmt{}
-	startPos := ast.Position{Line: p.curToken.Line, Column: p.curToken.Column}
-
-	p.nextToken() // consume 'begin'
-
-	stmt.Body = p.parseCompoundStatement()
-
-	if !p.expectPeek(END) {
-		return nil
-	}
-
-	stmt.SourceSpan = ast.SourceSpan{
-		Start: startPos,
-		End:   ast.Position{Line: p.curToken.Line, Column: p.curToken.Column},
-	}
-	return stmt
-}
-
-// parseWhileStatement handles "while E do S" loops.
-func (p *Parser) parseWhileStatement() *ast.WhileStmt {
-	stmt := &ast.WhileStmt{}
-	startPos := ast.Position{Line: p.curToken.Line, Column: p.curToken.Column}
-
-	p.nextToken() // consume 'while'
-	stmt.Condition = p.parseExpression(LOWEST)
-
-	if !p.expectPeek(DO) {
-		return nil
-	}
-
-	p.nextToken() // consume 'do'
-	stmt.Body = p.parseStatement()
-
-	if stmt.Body != nil {
-		stmt.SourceSpan = ast.SourceSpan{Start: startPos, End: stmt.Body.Span().End}
-	}
-	return stmt
-}
-
-// parseIfStatement handles "if E then S1 else S2" conditions.
-func (p *Parser) parseIfStatement() *ast.IfStmt {
-	stmt := &ast.IfStmt{}
-	startPos := ast.Position{Line: p.curToken.Line, Column: p.curToken.Column}
-
-	p.nextToken() // consume 'if'
-	stmt.Condition = p.parseExpression(LOWEST)
-
-	if !p.expectPeek(THEN) {
-		return nil
-	}
-
-	p.nextToken() // consume 'then'
-	stmt.ThenBlock = p.parseStatement()
-
-	if p.peekToken.Type == ELSE {
-		p.nextToken() // move to 'else'
-		p.nextToken() // move to the start of the else block
-		stmt.ElseBlock = p.parseStatement()
-	}
-
-	endPos := stmt.ThenBlock.Span().End
-	if stmt.ElseBlock != nil {
-		endPos = stmt.ElseBlock.Span().End
-	}
-
-	stmt.SourceSpan = ast.SourceSpan{Start: startPos, End: endPos}
-	return stmt
-}
-
-// parseSkipStatement handles "skip".
-func (p *Parser) parseSkipStatement() *ast.SkipStmt {
-	stmt := &ast.SkipStmt{}
-	pos := ast.Position{Line: p.curToken.Line, Column: p.curToken.Column}
-	stmt.SourceSpan = ast.SourceSpan{Start: pos, End: pos}
-	return stmt
 }
 
 // expectPeek asserts the next token type and advances if matched.
