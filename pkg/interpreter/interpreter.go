@@ -7,13 +7,21 @@ import (
 
 // Interpreter executes the SIPL Abstract Syntax Tree.
 type Interpreter struct {
-	Env *Environment
+	Env    *Environment
+	Tracer Tracer // Optional observer for execution events
 }
 
 // New initializes a new interpreter with an empty environment.
 func New() *Interpreter {
 	return &Interpreter{
 		Env: NewEnvironment(),
+	}
+}
+
+// emit is a helper to dispatch events to the attached Tracer.
+func (i *Interpreter) emit(event TraceEvent) {
+	if i.Tracer != nil {
+		i.Tracer.OnEvent(event)
 	}
 }
 
@@ -29,6 +37,25 @@ func (i *Interpreter) Interpret(program *ast.Program) error {
 
 // ExecuteStatement recursively evaluates SIPL statements and modifies the environment.
 func (i *Interpreter) ExecuteStatement(node ast.Statement) error {
+	// Skip tracing for SequenceStmt itself to avoid spamming the trace, 
+	// as its children will be traced individually.
+	_, isSequence := node.(*ast.SequenceStmt)
+	if !isSequence {
+		i.emit(TraceEvent{
+			Type:    EventStatementEnter,
+			Span:    node.Span(),
+			Message: fmt.Sprintf("Entering %T", node),
+		})
+
+		defer func() {
+			i.emit(TraceEvent{
+				Type:    EventStatementExit,
+				Span:    node.Span(),
+				Message: fmt.Sprintf("Exiting %T", node),
+			})
+		}()
+	}
+
 	switch stmt := node.(type) {
 	case *ast.AssignStmt:
 		val, err := i.EvaluateExpression(stmt.Value)
@@ -36,6 +63,14 @@ func (i *Interpreter) ExecuteStatement(node ast.Statement) error {
 			return err
 		}
 		i.Env.Set(stmt.Identifier.Value, val)
+		
+		i.emit(TraceEvent{
+			Type:     EventVariableChange,
+			Span:     stmt.Span(),
+			Message:  fmt.Sprintf("Variable '%s' changed to %d", stmt.Identifier.Value, val),
+			Variable: stmt.Identifier.Value,
+			Value:    val,
+		})
 
 	case *ast.SequenceStmt:
 		if err := i.ExecuteStatement(stmt.Left); err != nil {
@@ -75,7 +110,6 @@ func (i *Interpreter) ExecuteStatement(node ast.Statement) error {
 
 	case *ast.SkipStmt:
 		// Do nothing
-		return nil
 
 	default:
 		return fmt.Errorf("unknown statement type: %T", stmt)
@@ -132,11 +166,21 @@ func (i *Interpreter) EvaluateCondition(node ast.Expression) (bool, error) {
 		return false, err
 	}
 
+	var result bool
 	switch binExpr.Operator {
-	case ">": return left > right, nil
-	case "<": return left < right, nil
-	case "=": return left == right, nil
+	case ">": result = left > right
+	case "<": result = left < right
+	case "=": result = left == right
 	default:
 		return false, fmt.Errorf("unknown relational operator: %s", binExpr.Operator)
 	}
+
+	i.emit(TraceEvent{
+		Type:    EventConditionEvaluated,
+		Span:    node.Span(),
+		Message: fmt.Sprintf("Condition evaluated to %v", result),
+		CondRes: result,
+	})
+
+	return result, nil
 }
