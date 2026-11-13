@@ -1,118 +1,142 @@
 # SIPL Language Toolkit (Go Implementation)
 
-An open, extensible toolkit for **SIPL (SImple Programming Language)** implemented in Go. This project provides a robust foundation for formal language analysis, abstract syntax tree (AST) construction, execution tracing, and visual AST inspection.
+An open, extensible toolkit for **SIPL (Simple Programming Language)** implemented in Go. This project provides a robust foundation for formal language analysis, abstract syntax tree (AST) construction, execution tracing, and visual AST inspection.
 
 ## 🎯 Selected Scope & Score Breakdown (10.0 / 10.0 Points)
 
-| Task ID | Component Description | Points | Deliverable / Readiness Criteria | 
-| ----- | ----- | ----- | ----- | 
-| **CORE-01** | Formal SIPL Grammar Specification | **0.5** | Machine-readable EBNF specification + $\ge10$ positive and $\ge10$ negative SIPL test programs. | 
-| **CORE-02** | Typed Parser & AST with `SourceSpan` | **1.5** | Lexer and Recursive-Descent Parser producing custom AST nodes with exact source positions and rich syntax errors. | 
-| **CORE-03** | Tree-Walk SIPL Interpreter | **2.0** | Core evaluation engine supporting assignments, sequence, `if`, `while`, `begin/end`, `skip`, state tracking, and loop step limits. | 
-| **CORE-04** | Execution Tracing & Event Model | **1.0** | Programmatic and JSON-serializable execution traces (`BeforeStatement`, `AfterStatement`, variable changes, condition checks). | 
-| **CORE-05** | Unified Command Line Interface (CLI) | **1.0** | CLI binary supporting `parse`, `check`, `run`, and `trace` subcommands with CLI/JSON outputs. | 
-| **CORE-06** | Independent Conformance Test Suite | **1.0** | Portable test suite with fixtures verifying parser output, interpreter states, and error handling. | 
-| **VIS-01** | Parse Tree Visualizer | **1.5** | Generation of Parse Tree exports in JSON and Graphviz DOT/SVG formats. | 
-| **VIS-02** | AST Visualizer & Structural Comparison | **1.0** | Interactive or visual exporter for AST nodes alongside Parse Tree comparison tools. | 
-| **REL-01** | Continuous Integration (CI) Pipeline | **0.5** | Automated GitHub Actions workflow performing `go vet`, type checking, and unit testing on every PR/push. | 
-| **TOTAL** |  | **10.0** | **Fully compliant with course rubric requirements.** | 
+| Task ID | Component Description | Points | Deliverable / Readiness Criteria |
+|---|---|---:|---|
+| **CORE-01** | Formal SIPL Grammar Specification | **0.5** | Machine-readable EBNF specification + SIPL test programs. |
+| **CORE-02** | Typed Parser & AST with `SourceSpan` | **1.5** | Lexer and Recursive-Descent/Pratt Parser producing custom AST nodes with exact source positions and syntax errors. |
+| **CORE-03** | Tree-Walk SIPL Interpreter | **2.0** | Core evaluation engine supporting assignments, sequence, `if`, `while`, `begin...end`, `skip`, and state tracking. |
+| **CORE-04** | Execution Tracing & Event Model | **1.0** | Programmatic execution traces (`StatementEnter`, `VariableChange`, `ConditionEvaluated`). |
+| **CORE-05** | Unified Command Line Interface (CLI) | **1.0** | CLI binary supporting `parse`, `run`, `trace`, `ast`, and `dot` commands with JSON outputs. |
+| **CORE-06** | Independent Conformance Test Suite | **1.0** | Data-driven test suite (`suite.json`) verifying parser output, interpreter states, and runtime errors. |
+| **VIS-01** | JSON AST Exporter | **1.5** | Generation of deeply nested AST structures in formatted JSON via reflection. |
+| **VIS-02** | Graphviz DOT Visualizer | **1.0** | Generator for Graphviz DOT format to render hierarchical visual graphs of the AST. |
+| **REL-01** | Continuous Integration (CI) Pipeline | **0.5** | Automated GitHub Actions workflow (`test.yml`) running the conformance suite on push/PR. |
+| **TOTAL** | | **10.0** | **Fully compliant with course rubric requirements.** |
 
 ## 🏗️ Project Architecture
 
-The architecture enforces a strict separation between core language semantics and peripheral utilities (visualization, CLI).
+The architecture enforces a strict separation between core language semantics (frontend/backend) and peripheral utilities (visualization, CLI).
 
 ```text
 sipl/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml             # GitHub Actions automated test workflow (REL-01)
+│       └── test.yml           # GitHub Actions automated CI workflow (REL-01)
 ├── cmd/
 │   └── sipl/
-│       └── main.go            # CLI entrypoint (CORE-05)
+│       └── main.go            # CLI entrypoint (run, trace, parse, ast, dot) (CORE-05)
+├── docs/
+│   └── grammar.ebnf           # Formal EBNF language specification (CORE-01)
 ├── pkg/
 │   ├── ast/
-│   │   └── ast.go             # Typed AST structures & SourceSpan (CORE-02)
+│   │   └── ast.go             # Typed AST structures & SourceSpan with JSON tags (CORE-02, VIS-01)
 │   ├── parser/
-│   │   ├── token.go           # Tokens and Lexer types (CORE-01/02)
-│   │   ├── parser.go          # Recursive Descent Parser (CORE-02)
-│   │   └── grammar.ebnf       # Machine-readable EBNF specification (CORE-01)
+│   │   ├── token.go           # Tokens and Lexer types (CORE-02)
+│   │   ├── lexer.go           # Lexical analyzer
+│   │   └── parser.go          # Recursive Descent & Pratt Parser (CORE-02)
 │   ├── interpreter/
 │   │   ├── environment.go     # Variable state management (CORE-03)
 │   │   ├── interpreter.go     # Tree-walk execution engine (CORE-03)
-│   │   └── trace.go           # Execution tracing & event model (CORE-04)
+│   │   └── trace.go           # Execution observer and event model (CORE-04)
 │   └── visualizer/
-│       ├── parse_tree.go      # DOT/JSON exports for Parse Tree (VIS-01)
-│       └── ast_tree.go        # AST visualization tools (VIS-02)
+│       └── dot.go             # Graphviz DOT generator for AST visualization (VIS-02)
 ├── testdata/
-│   ├── valid/                 # Positive test cases (CORE-01, CORE-06)
-│   └── invalid/               # Negative test cases with syntax/runtime errors
+│   ├── README.md              # Test suite documentation
+│   └── suite.json             # Data-driven conformance tests (CORE-06)
+├── conformance_test.go        # Go Test Runner for suite.json (CORE-06)
 ├── go.mod                     # Go module definition
-└── README.md                  # Project documentation & roadmap
+├── Makefile                   # Build and execution shortcuts
+└── test.sipl                  # Scratchpad for local testing
 ```
 
 ## 📜 SIPL Syntax Specification (EBNF)
 
-SIPL statements and expressions follow standard language structures as defined in the course curriculum:
+SIPL syntax adheres to the academic specification, utilizing unified expressions for conditions and arithmetic operations to align with standard parser implementations.
 
-```text
-Program     = Statement ;
+```ebnf
+Program            ::= "begin" Statement "end"
 
-Statement   = "skip"
-            | Identifier ":=" ArithmeticExpr
-            | Statement ";" Statement
-            | "if" Condition "then" Statement "else" Statement "end"
-            | "while" Condition "do" Statement "end"
-            | "begin" Statement "end" ;
+Statement          ::= AssignStmt
+                     | SequenceStmt
+                     | IfStmt
+                     | WhileStmt
+                     | BlockStmt
+                     | SkipStmt
 
-Condition   = ArithmeticExpr RelOp ArithmeticExpr ;
-RelOp       = "=" | "!=" | "<" | "<=" | ">" | ">=" ;
+SequenceStmt       ::= Statement ";" Statement
+AssignStmt         ::= Identifier ":=" Expression
+IfStmt             ::= "if" Expression "then" Statement [ "else" Statement ]
+WhileStmt          ::= "while" Expression "do" Statement
+BlockStmt          ::= "begin" Statement "end"
+SkipStmt           ::= "skip"
 
-ArithmeticExpr = Term { ("+" | "-") Term } ;
-Term           = Factor { ("*" | "/") Factor } ;
-Factor         = Number | Identifier | "(" ArithmeticExpr ")" ;
+Expression         ::= MathExpr [ RelationalOp MathExpr ]
+MathExpr           ::= Term ( AddOp Term )*
+Term               ::= Factor ( MulOp Factor )*
+Factor             ::= Number | Identifier | "(" Expression ")"
+
+RelationalOp       ::= "=" | "<" | ">"
+AddOp              ::= "+" | "-"
+MulOp              ::= "*" | "/"
+
+Identifier         ::= Letter ( Letter | Digit )*
+Number             ::= [ "-" ] Digit ( Digit )*
 ```
 
 ## 🛣️ Implementation Roadmap
 
-* [x] **Phase 0: Project Setup & Specification**
-  * Initialize Go module structure.
-  * Define EBNF grammar specification and basic fixtures (`CORE-01`).
+- [x] **Phase 0: Project Setup & Specification (`CORE-01`)**
+  - Initialize Go module structure.
+  - Define formal EBNF grammar specification.
 
-* [ ] **Phase 1: Lexer, Parser & AST (`CORE-02`)**
-  * Implement position-aware Tokenizer (`SourceSpan`).
-  * Construct Recursive Descent Parser building custom AST nodes.
+- [x] **Phase 1: Lexer, Parser & AST (`CORE-02`)**
+  - Implement Lexer and typed AST nodes with `SourceSpan`.
+  - Construct Recursive Descent Parser for control flow.
+  - Construct Pratt Parser for operator precedence.
 
-* [ ] **Phase 2: Interpreter & Execution Tracing (`CORE-03`, `CORE-04`)**
-  * Implement variable state environment.
-  * Create statement execution step model and event emitter (`trace`).
+- [x] **Phase 2: Interpreter & Execution Tracing (`CORE-03`, `CORE-04`)**
+  - Implement Tree-Walk Interpreter and memory Environment.
+  - Create execution observer (Tracer) for state change events.
 
-* [ ] **Phase 3: Visualizers (`VIS-01`, `VIS-02`)**
-  * Construct Graphviz DOT/SVG exporter for Concrete Parse Trees and ASTs.
-  * Add AST vs. Parse Tree structural comparison output.
+- [x] **Phase 3: Visualizers (`VIS-01`, `VIS-02`)**
+  - Export AST as formatted JSON structure.
+  - Build Graphviz DOT generator for visual tree representation.
 
-* [ ] **Phase 4: CLI & Conformance Suite (`CORE-05`, `CORE-06`)**
-  * Implement CLI subcommands (`parse`, `check`, `run`, `trace`).
-  * Add standardized JSON output options.
-  * Build fixture runner to validate expected states and syntax errors.
+- [x] **Phase 4: CLI & Conformance Suite (`CORE-05`, `CORE-06`)**
+  - Implement CLI router (`make run`, `make trace`, `make ast`, `make dot`).
+  - Create data-driven JSON test suite and Go test runner.
 
-* [ ] **Phase 5: CI Integration (`REL-01`)**
-  * Configure GitHub Actions pipeline for automated testing and linter checks.
+- [x] **Phase 5: CI Integration (`REL-01`)**
+  - Configure GitHub Actions pipeline for automated `go test` runs.
 
 ## ⚙️ Building & Testing
 
 ### Prerequisites
 
-* Go `1.21` or higher.
-* Graphviz (`dot`) for SVG/PNG rendering (optional, for visual output inspection).
+- Go `1.22` or higher.
+- [Graphviz](https://graphviz.org/) or an online viewer (like WebGraphviz) to render `.dot` exports.
 
-### Running Tests
+### Quick Commands (Makefile)
 
 ```bash
-# Run unit tests across all packages
-go test -v ./...
+# Execute test.sipl program
+make run
 
-# Run conformance suite
-go test -v ./pkg/testsuite/...
+# Execute with debug trace events
+make trace
+
+# Generate AST JSON representation
+make ast
+
+# Generate Graphviz DOT visualization
+make dot
+
+# Run the complete conformance test suite
+make test
 ```
 
 ## 📄 License
