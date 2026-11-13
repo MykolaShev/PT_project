@@ -1,0 +1,43 @@
+/* 
+   SIPL (Simple Programming Language) EBNF Grammar
+   This Grammar uses a unified expressions hierarchy (Unified Expressions),
+   delegating the checking of Boolean types to semantic analysis stage.
+*/
+
+Program            ::= Statement
+
+/* Statements */
+Statement          ::= AssignStmt 
+                     | SequenceStmt 
+                     | IfStmt 
+                     | WhileStmt 
+                     | BlockStmt 
+                     | SkipStmt
+
+SequenceStmt       ::= Statement ";" Statement
+AssignStmt         ::= Identifier ":=" Expression
+IfStmt             ::= "if" Expression "then" Statement [ "else" Statement ]
+WhileStmt          ::= "while" Expression "do" Statement
+BlockStmt          ::= "begin" Statement "end"
+SkipStmt           ::= "skip"
+
+/* 
+   Unified Expressions (Уніфіковані вирази)
+   Operators of comparison have the lowest priority,
+   accordint to Pratt's algorithm of descending parsing.
+*/
+Expression         ::= MathExpr [ RelationalOp MathExpr ]
+MathExpr           ::= Term ( AddOp Term )*
+Term               ::= Factor ( MulOp Factor )*
+Factor             ::= Number | Identifier | "(" Expression ")"
+
+/* Operators */
+RelationalOp       ::= "=" | "<" | ">"
+AddOp              ::= "+" | "-"
+MulOp              ::= "*" | "/"
+
+/* Lexical Elements */
+Identifier         ::= Letter ( Letter | Digit )*
+Number             ::= [ "-" ] Digit ( Digit )*
+Letter             ::= "a".."z" | "A".."Z"
+Digit              ::= "0".."9"
