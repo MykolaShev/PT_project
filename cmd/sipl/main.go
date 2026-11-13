@@ -7,6 +7,7 @@ import (
 	"os"
 	"pt_project/pkg/interpreter"
 	"pt_project/pkg/parser"
+	"pt_project/pkg/visualizer"
 )
 
 // ConsoleTracer implements the Tracer interface to print events to stdout.
@@ -31,7 +32,7 @@ func main() {
 	args := flag.Args()
 	if len(args) < 2 {
 		fmt.Println("Usage: sipl [--json] <command> <file.sipl>")
-		fmt.Println("Commands: run, trace, parse")
+		fmt.Println("Commands: run, trace, parse, ast, dot")
 		os.Exit(1)
 	}
 
@@ -63,9 +64,21 @@ func main() {
 		os.Exit(0)
 	}
 
+	if command == "ast" {
+		astJSON, _ := json.MarshalIndent(program, "", "  ")
+		fmt.Println(string(astJSON))
+		os.Exit(0)
+	}
+
+	if command == "dot" {
+		v := visualizer.NewDotVisualizer()
+		fmt.Println(v.Generate(program))
+		os.Exit(0)
+	}
+
 	// 3. Execution (Backend)
 	interp := interpreter.New()
-	
+
 	// Inject the Tracer only if the 'trace' command is used
 	if command == "trace" {
 		interp.Tracer = &ConsoleTracer{}

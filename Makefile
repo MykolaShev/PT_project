@@ -14,3 +14,9 @@ json:
 
 test:
 	go test -v ./...
+
+ast:
+	go run cmd/sipl/main.go ast test.sipl
+
+dot:
+	go run cmd/sipl/main.go dot test.sipl
