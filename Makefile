@@ -20,3 +20,6 @@ ast:
 
 dot:
 	go run cmd/sipl/main.go dot test.sipl
+
+text:
+	go run cmd/sipl/main.go text test.sipl

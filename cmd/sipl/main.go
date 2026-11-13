@@ -76,6 +76,12 @@ func main() {
 		os.Exit(0)
 	}
 
+	if command == "text" {
+		v := visualizer.NewTextVisualizer()
+		fmt.Print(v.Generate(program, "", true))
+		os.Exit(0)
+	}
+
 	// 3. Execution (Backend)
 	interp := interpreter.New()
 
