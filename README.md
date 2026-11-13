@@ -1,5 +1,7 @@
 # SIPL Language Toolkit (Go Implementation)
 
+[![SIPL CI](https://github.com/MykolaShev/PT_project/actions/workflows/test.yml/badge.svg)](https://github.com/<твій-github-юзернейм>/<назва-репозиторію>/actions)
+
 An open, extensible toolkit for **SIPL (Simple Programming Language)** implemented in Go. This project provides a robust foundation for formal language analysis, abstract syntax tree (AST) construction, execution tracing, and visual AST inspection.
 
 ## 🎯 Selected Scope & Score Breakdown (10.0 / 10.0 Points)
