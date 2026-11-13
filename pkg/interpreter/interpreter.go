@@ -7,14 +7,17 @@ import (
 
 // Interpreter executes the SIPL Abstract Syntax Tree.
 type Interpreter struct {
-	Env    *Environment
-	Tracer Tracer // Optional observer for execution events
+	Env       *Environment
+	Tracer    Tracer // Optional observer for execution events
+	stepCount int
+	MaxSteps  int
 }
 
 // New initializes a new interpreter with an empty environment.
 func New() *Interpreter {
 	return &Interpreter{
 		Env: NewEnvironment(),
+		MaxSteps: 10000,
 	}
 }
 
@@ -37,7 +40,12 @@ func (i *Interpreter) Interpret(program *ast.Program) error {
 
 // ExecuteStatement recursively evaluates SIPL statements and modifies the environment.
 func (i *Interpreter) ExecuteStatement(node ast.Statement) error {
-	// Skip tracing for SequenceStmt itself to avoid spamming the trace, 
+	i.stepCount++
+	if i.stepCount > i.MaxSteps {
+		return fmt.Errorf("runtime error: execution step limit exceeded (%d)", i.MaxSteps)
+	}
+
+	// Skip tracing for SequenceStmt itself to avoid spamming the trace,
 	// as its children will be traced individually.
 	_, isSequence := node.(*ast.SequenceStmt)
 	if !isSequence {
@@ -63,7 +71,7 @@ func (i *Interpreter) ExecuteStatement(node ast.Statement) error {
 			return err
 		}
 		i.Env.Set(stmt.Identifier.Value, val)
-		
+
 		i.emit(TraceEvent{
 			Type:     EventVariableChange,
 			Span:     stmt.Span(),
@@ -135,9 +143,12 @@ func (i *Interpreter) EvaluateExpression(node ast.Expression) (int64, error) {
 		}
 
 		switch expr.Operator {
-		case "+": return left + right, nil
-		case "-": return left - right, nil
-		case "*": return left * right, nil
+		case "+":
+			return left + right, nil
+		case "-":
+			return left - right, nil
+		case "*":
+			return left * right, nil
 		case "/":
 			if right == 0 {
 				return 0, fmt.Errorf("division by zero at line %d, col %d", expr.Span().Start.Line, expr.Span().Start.Column)
@@ -168,9 +179,12 @@ func (i *Interpreter) EvaluateCondition(node ast.Expression) (bool, error) {
 
 	var result bool
 	switch binExpr.Operator {
-	case ">": result = left > right
-	case "<": result = left < right
-	case "=": result = left == right
+	case ">":
+		result = left > right
+	case "<":
+		result = left < right
+	case "=":
+		result = left == right
 	default:
 		return false, fmt.Errorf("unknown relational operator: %s", binExpr.Operator)
 	}
