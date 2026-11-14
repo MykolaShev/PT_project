@@ -82,8 +82,20 @@ func main() {
 		os.Exit(0)
 	}
 
+	if command == "cst" {
+		cst := parser.NewCSTParser(parser.NewLexer(string(source))).ParseCST()
+		if *jsonFlag {
+			cstJSON, _ := json.MarshalIndent(cst, "", "  ")
+			fmt.Println(string(cstJSON))
+		} else {
+			fmt.Print(cst.FormatText())
+		}
+		os.Exit(0)
+	}
+
 	if command == "web" {
-		htmlContent := visualizer.GenerateHTML(program)
+		cst := parser.NewCSTParser(parser.NewLexer(string(source))).ParseCST()
+		htmlContent := visualizer.GenerateHTML(program, cst)
 		err := os.WriteFile("tree.html", []byte(htmlContent), 0644)
 		if err != nil {
 			fmt.Printf("Error writing tree.html: %v\n", err)
