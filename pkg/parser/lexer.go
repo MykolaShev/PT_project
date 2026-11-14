@@ -59,7 +59,7 @@ func (l *Lexer) NextToken() Token {
 
 	switch l.ch {
 	case '=':
-		tok = l.newToken(ASSIGN, l.ch) // For SIPL, '=' is equality. ':=' is assignment.
+		tok = l.newToken(EQ, l.ch)
 	case ';':
 		tok = l.newToken(SEMICOLON, l.ch)
 	case '(':

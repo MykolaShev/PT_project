@@ -32,7 +32,7 @@ func main() {
 	args := flag.Args()
 	if len(args) < 2 {
 		fmt.Println("Usage: sipl [--json] <command> <file.sipl>")
-		fmt.Println("Commands: run, trace, parse, ast, dot")
+		fmt.Println("Commands: run, trace, parse, ast, dot, text, html")
 		os.Exit(1)
 	}
 
@@ -79,6 +79,17 @@ func main() {
 	if command == "text" {
 		v := visualizer.NewTextVisualizer()
 		fmt.Print(v.Generate(program, "", true))
+		os.Exit(0)
+	}
+
+	if command == "web" {
+		htmlContent := visualizer.GenerateHTML(program)
+		err := os.WriteFile("tree.html", []byte(htmlContent), 0644)
+		if err != nil {
+			fmt.Printf("Error writing tree.html: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println("Generated tree.html successfully.")
 		os.Exit(0)
 	}
 

@@ -15,7 +15,7 @@ const (
 )
 
 var precedences = map[TokenType]int{
-	// EQ: EQUALS,
+	EQ:       EQUALS,
 	LT:       LESSGREATER,
 	GT:       LESSGREATER,
 	PLUS:     SUM,
@@ -260,7 +260,7 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	// Infix parsing (binary operators)
 	for p.peekToken.Type != SEMICOLON && precedence < p.peekPrecedence() {
 		switch p.peekToken.Type {
-		case PLUS, MINUS, ASTERISK, SLASH, LT, GT: // Add EQ if you have it
+		case PLUS, MINUS, ASTERISK, SLASH, LT, GT, EQ:
 			p.nextToken()
 			leftExp = p.parseInfixExpression(leftExp)
 		default:
