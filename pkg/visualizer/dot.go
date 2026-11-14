@@ -28,6 +28,13 @@ func (v *DotVisualizer) Generate(program *ast.Program) string {
 	return v.builder.String()
 }
 
+func formatLabel(name string, span ast.SourceSpan) string {
+	if span.Start.Line > 0 {
+		return fmt.Sprintf("%s\\n[%d:%d]", name, span.Start.Line, span.Start.Column)
+	}
+	return name
+}
+
 func (v *DotVisualizer) addNode(label string) int {
 	v.nodeCount++
 	id := v.nodeCount
@@ -49,30 +56,32 @@ func (v *DotVisualizer) walk(n ast.Node) int {
 		return v.addNode("nil")
 	}
 
+	span := n.Span()
+
 	switch node := n.(type) {
 	case *ast.Program:
-		id := v.addNode("Program")
+		id := v.addNode(formatLabel("Program", span))
 		for i, stmt := range node.Statements {
 			childId := v.walk(stmt)
 			v.addEdge(id, childId, fmt.Sprintf("stmt[%d]", i))
 		}
 		return id
 	case *ast.AssignStmt:
-		id := v.addNode(":=")
-		idNode := v.addNode(fmt.Sprintf("id(%s)", node.Identifier.Value))
+		id := v.addNode(formatLabel(":=", span))
+		idNode := v.addNode(formatLabel(fmt.Sprintf("id(%s)", node.Identifier.Value), node.Identifier.SourceSpan))
 		v.addEdge(id, idNode, "left")
 		valId := v.walk(node.Value)
 		v.addEdge(id, valId, "right")
 		return id
 	case *ast.SequenceStmt:
-		id := v.addNode(";")
+		id := v.addNode(formatLabel(";", span))
 		leftId := v.walk(node.Left)
 		rightId := v.walk(node.Right)
 		v.addEdge(id, leftId, "left")
 		v.addEdge(id, rightId, "right")
 		return id
 	case *ast.IfStmt:
-		id := v.addNode("if")
+		id := v.addNode(formatLabel("if", span))
 		condId := v.walk(node.Condition)
 		thenId := v.walk(node.ThenBlock)
 		v.addEdge(id, condId, "cond")
@@ -83,25 +92,25 @@ func (v *DotVisualizer) walk(n ast.Node) int {
 		}
 		return id
 	case *ast.WhileStmt:
-		id := v.addNode("while")
+		id := v.addNode(formatLabel("while", span))
 		condId := v.walk(node.Condition)
 		bodyId := v.walk(node.Body)
 		v.addEdge(id, condId, "cond")
 		v.addEdge(id, bodyId, "body")
 		return id
 	case *ast.BlockStmt:
-		id := v.addNode("begin...end")
+		id := v.addNode(formatLabel("begin...end", span))
 		bodyId := v.walk(node.Body)
 		v.addEdge(id, bodyId, "body")
 		return id
 	case *ast.SkipStmt:
-		return v.addNode("skip")
+		return v.addNode(formatLabel("skip", span))
 	case *ast.NumberExpr:
-		return v.addNode(fmt.Sprintf("int(%d)", node.Value))
+		return v.addNode(formatLabel(fmt.Sprintf("int(%d)", node.Value), span))
 	case *ast.IdentifierExpr:
-		return v.addNode(fmt.Sprintf("id(%s)", node.Name))
+		return v.addNode(formatLabel(fmt.Sprintf("id(%s)", node.Name), span))
 	case *ast.BinaryExpr:
-		id := v.addNode(node.Operator)
+		id := v.addNode(formatLabel(node.Operator, span))
 		leftId := v.walk(node.Left)
 		rightId := v.walk(node.Right)
 		v.addEdge(id, leftId, "left")
