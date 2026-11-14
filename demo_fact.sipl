@@ -1,0 +1,9 @@
+begin
+  N := 5 ;
+  F := 1 ;
+  while N > 0 do
+  begin
+    F := F * N ;
+    N := N - 1
+  end
+end

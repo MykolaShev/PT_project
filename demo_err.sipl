@@ -1,0 +1,4 @@
+begin
+  X := 10 ;
+  if X > 5 X := 1 else skip
+end

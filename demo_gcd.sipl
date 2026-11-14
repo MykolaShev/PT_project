@@ -1,0 +1,16 @@
+begin
+  A := 48 ;
+  B := 18 ;
+  while B > 0 do
+  begin
+    R := A ;
+    while R > B do
+      R := R - B ;
+    if R = B then
+      R := 0
+    else
+      skip ;
+    A := B ;
+    B := R
+  end
+end
