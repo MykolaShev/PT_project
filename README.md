@@ -119,8 +119,9 @@ Number             ::= [ "-" ] Digit ( Digit )*
   - Create execution observer (Tracer) for state change events.
 
 - [x] **Phase 3: Visualizers (`VIS-01`, `VIS-02`)**
-  - Export AST as formatted JSON structure.
-  - Build Graphviz DOT generator for visual tree representation.
+  - Build Concrete Syntax Tree (`CSTParser`) alongside typed AST with `[line:col]` spans.
+  - Export trees in Text, JSON, and Graphviz DOT formats.
+  - Generate interactive D3.js side-by-side Parse Tree vs. AST comparison (`make web`).
 
 - [x] **Phase 4: CLI & Conformance Suite (`CORE-05`, `CORE-06`)**
   - Implement CLI router (`make run`, `make trace`, `make ast`, `make dot`).

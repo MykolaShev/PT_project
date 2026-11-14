@@ -40,5 +40,5 @@ else
 endif
 
 cover:
-	go test -coverpkg=./pkg/ast,./pkg/parser,./pkg/interpreter -coverprofile=coverage.out . ./cmd/sipl
+	go test -coverpkg=./pkg/ast,./pkg/parser,./pkg/interpreter -coverprofile=coverage.out ./...
 	go tool cover -func coverage.out
