@@ -89,6 +89,13 @@ Identifier         ::= Letter ( Letter | Digit )*
 Number             ::= [ "-" ] Digit ( Digit )*
 ```
 
+## 📊 JSON Output Schema (CORE-05)
+When executing with `--json run` or `ast`, the CLI outputs a stable JSON schema for integrations:
+- **Trace/Run State**: Output is a flat key-value mapping `map[string]int64` representing the final environment variables.
+- **AST Nodes**: Objects containing standard fields:
+  - `span`: `{ "start": {"line": int, "column": int}, "end": {"line": int, "column": int} }`
+  - Control flows map specific sub-blocks (e.g., `IfStmt` contains `Condition`, `ThenBlock`, `ElseBlock`).
+
 ## 🛣️ Implementation Roadmap
 
 - [x] **Phase 0: Project Setup & Specification (`CORE-01`)**
