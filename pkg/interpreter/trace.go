@@ -26,3 +26,26 @@ type TraceEvent struct {
 type Tracer interface {
 	OnEvent(event TraceEvent)
 }
+
+// JSONTracer collects execution events in memory for structured JSON export.
+type JSONTracer struct {
+	Events []TraceEvent `json:"events"`
+}
+
+// NewJSONTracer initializes an empty JSONTracer.
+func NewJSONTracer() *JSONTracer {
+	return &JSONTracer{
+		Events: []TraceEvent{},
+	}
+}
+
+// OnEvent appends a trace event to the recorded slice.
+func (t *JSONTracer) OnEvent(event TraceEvent) {
+	t.Events = append(t.Events, event)
+}
+
+// TraceReport represents the structured JSON output for traced execution.
+type TraceReport struct {
+	Events []TraceEvent     `json:"events"`
+	State  map[string]int64 `json:"state"`
+}

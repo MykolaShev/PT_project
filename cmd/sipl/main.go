@@ -32,7 +32,7 @@ func main() {
 	args := flag.Args()
 	if len(args) < 2 {
 		fmt.Println("Usage: sipl [--json] <command> <file.sipl>")
-		fmt.Println("Commands: run, trace, parse, ast, dot, text, html")
+		fmt.Println("Commands: run, trace, parse, check, ast, cst, dot, text, web")
 		os.Exit(1)
 	}
 
@@ -59,7 +59,7 @@ func main() {
 		os.Exit(1) // Exit with error code
 	}
 
-	if command == "parse" {
+	if command == "parse" || command == "check" {
 		fmt.Println("Parsing successful. AST built.")
 		os.Exit(0)
 	}
@@ -96,9 +96,14 @@ func main() {
 	// 3. Execution (Backend)
 	interp := interpreter.New()
 
-	// Inject the Tracer only if the 'trace' command is used
+	var jsonTracer *interpreter.JSONTracer
 	if command == "trace" {
-		interp.Tracer = &ConsoleTracer{}
+		if *jsonFlag {
+			jsonTracer = interpreter.NewJSONTracer()
+			interp.Tracer = jsonTracer
+		} else {
+			interp.Tracer = &ConsoleTracer{}
+		}
 	}
 
 	if command == "run" || command == "trace" {
@@ -108,10 +113,19 @@ func main() {
 			os.Exit(1)
 		}
 
-		// 4. Output Final State
+		// 4. Output Final State / Trace
 		if *jsonFlag {
-			stateJSON, _ := json.MarshalIndent(interp.Env.State(), "", "  ")
-			fmt.Println(string(stateJSON))
+			if command == "trace" {
+				report := interpreter.TraceReport{
+					Events: jsonTracer.Events,
+					State:  interp.Env.State(),
+				}
+				out, _ := json.MarshalIndent(report, "", "  ")
+				fmt.Println(string(out))
+			} else {
+				stateJSON, _ := json.MarshalIndent(interp.Env.State(), "", "  ")
+				fmt.Println(string(stateJSON))
+			}
 		} else {
 			fmt.Println("\n--- Final State ---")
 			for k, v := range interp.Env.State() {
