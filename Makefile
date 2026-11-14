@@ -24,6 +24,9 @@ dot:
 text:
 	go run cmd/sipl/main.go text test.sipl
 
+cst:
+	go run cmd/sipl/main.go cst test.sipl
+
 web: html
 
 html:
